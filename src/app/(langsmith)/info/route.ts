@@ -24,6 +24,7 @@ export async function GET(request: Request) {
             "s3_storage_enabled": true
         }
     }, {
+        headers: {},
         status: 220
     })
 }
