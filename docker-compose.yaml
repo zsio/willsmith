@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  willsmith:
+    container_name: willsmith
+    build:
+      context: ./
+      dockerfile: prod.Dockerfile
+      args:
+        ENV_VARIABLE: ${ENV_VARIABLE}
+        NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
+    restart: always
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+    ports:
+      - 23000:3000
+    
