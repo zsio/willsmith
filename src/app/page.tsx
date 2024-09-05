@@ -1,4 +1,3 @@
-import clientPromise from "@/lib/mongo/mongo";
 import { redirect } from 'next/navigation'
 
 

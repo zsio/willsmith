@@ -196,7 +196,7 @@ export default function ProjectsLayout({
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="#">Projects</Link>
+                  <Link href="/projects">Projects</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
