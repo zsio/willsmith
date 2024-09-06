@@ -1,119 +1,76 @@
 "use client";
 
+import dynamic from 'next/dynamic';
 import useSWR from "swr";
 import dayjs from "dayjs";
-import ReactJson from "react-json-view";
 
-import { format, render, cancel, register } from "timeago.js";
-import { CircleCheck, CircleX, Search } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { CircleCheck, CircleX, LayoutDashboard, RefreshCcw, Search } from "lucide-react";
 
-import { getRunsAction } from "@/actions/projects";
+
+import type { IRun } from "@/models/runs";
+import { getRunsAction, getRunActionByIds } from "@/actions/projects";
 import { Button } from "@/components/ui/button";
+import { columns } from './columns';
+import { DataTable } from './data-table';
+import { Badge } from '@/components/ui/badge';
+import { useEffect, useState, useCallback } from 'react';
+import { log } from 'console';
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
-  const { data, error, mutate, isLoading } = useSWR(
-    `/actions/runs?session_name=${params.id}`,
-    async () => {
-      const runs = await getRunsAction(params.id);
-      return runs;
-    }
-  );
+  const [list, setList] = useState<IRun[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const session_name = params.id;
-  const runs = data || [];
 
 
-  const copyToClipboard = (text: Object) => {
-    navigator.clipboard.writeText(JSON.stringify(text, null, 2));
+  const handleSetList = (newRuns: IRun[]) => {
+    setList(prevList => {
+      const updatedList = prevList.map(prevItem => {
+        const newItem = newRuns.find(item => item._id === prevItem._id);
+        return newItem ? newItem : prevItem;
+      });
+      const newItems = newRuns.filter(item => !prevList.some(prevItem => prevItem._id === item._id));
+      return [...updatedList, ...newItems];
+    });
+  }
+
+  const handleGetRuns = useCallback(async (lastRunId?: string) => {
+    setIsLoading(true)
+    const runs = (await getRunsAction(params.id, 30,lastRunId)) || []
+    handleSetList(runs)
+    setIsLoading(false)
+  }, [params.id]);
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    if (isLoading) return
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 20) {
+      const lastRun = list[list.length - 1];
+      if (lastRun) {
+        handleGetRuns(lastRun._id as string);
+      }
+    }
   };
 
+  useEffect(() => {
+    handleGetRuns()
+  }, [handleGetRuns])
+
   return (
-    <div>
-      <Card x-chunk="dashboard-05-chunk-3">
-        <CardHeader className="px-7">
-          <CardTitle>{session_name}</CardTitle>
-          <CardDescription>Recent runs from your project.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">Status</TableHead>
-                <TableHead className="text-left">Name</TableHead>
-                <TableHead className="hidden sm:table-cell">Input</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Start Time
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {runs.map((run: any) => (
-                <TableRow key={run._id}>
-                  <TableCell>
-                    <div className="text-sm text-muted-foreground md:inline">
-                      {run.error ? (
-                        <CircleX color="#ff0000" />
-                      ) : (
-                        <CircleCheck color="#199400" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="sm:table-cell ">
-                    <div className="max-w-[40vw] truncate">
-                      {run.name}
-                    </div>
-                  </TableCell>
-                  <TableCell className="sm:table-cell">
-                    <Dialog>
-                      <DialogTrigger>
-                        <div className="max-w-[180px] truncate hover:underline cursor-pointer">
-                          {JSON.stringify(run.inputs)}
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-[70vw]">
-                        <DialogHeader>
-                          <DialogTitle className="text-lg mb-2">Inputs</DialogTitle>
-                          <DialogDescription>
-                            <div className="h-[80vh] overflow-auto">
-                              <ReactJson src={run.inputs} collapsed={2} iconStyle="circle" enableClipboard={({src})=>copyToClipboard(src)} />
-                            </div>
-                          </DialogDescription>
-                        </DialogHeader>
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {dayjs(run.start_time).format("YYYY-MM-DD HH:mm:ss")}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+    <div className=" h-full flex flex-col">
+      <div className="p-6 pt-2">
+        <div className="text-2xl font-bold flex items-center gap-2">
+          <LayoutDashboard className="" />
+          {session_name}
+          <Button variant="outline" size="icon" onClick={() => handleGetRuns()} disabled={isLoading}>
+            <RefreshCcw className={`${isLoading ? "animate-spin" : ""} w-4 h-4`} />
+          </Button>
+        </div>
+        <div className="text-sm text-muted-foreground">Recent runs from your project.</div>
+      </div>
+      <div className="flex-1 overflow-auto h-full" onScroll={handleScroll}>
+        <DataTable columns={columns} data={list || []} />
+      </div>
     </div>
   );
 }

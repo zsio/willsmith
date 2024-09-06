@@ -137,8 +137,8 @@ export default function ProjectsLayout({
           </Tooltip>
         </nav>
       </aside>
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      <div className="flex flex-col sm:pl-14 h-screen">
+        <header className="sticky top-0 z-30 flex flex-0 items-center border-b bg-background px-4 sm:static sm:h-auto sm:bg-transparent">
           <Sheet>
             <SheetTrigger asChild>
               <Button size="icon" variant="outline" className="sm:hidden">
@@ -192,18 +192,21 @@ export default function ProjectsLayout({
               </nav>
             </SheetContent>
           </Sheet>
-          <Breadcrumb className="hidden md:flex">
+          <Breadcrumb className="hidden md:flex h-12">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="/projects">Projects</Link>
+                  <Link href="/projects" className="flex items-center gap-1">
+                    <Package className="h-4 w-4" />
+                    <span>Projects</span>
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <main className="sm:px-6 sm:py-0">
+        <main className="flex-1 overflow-y-hidden">
           {children}
         </main>
       </div>

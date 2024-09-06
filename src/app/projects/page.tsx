@@ -15,13 +15,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getProjectsAction } from "@/actions/projects";
+import dayjs from "dayjs";
 
 export default async function Projects() {
-  const projects = await getProjectsAction();
+  const result = await getProjectsAction()
+  const projects = (result?.sessions || [])
+    .filter((project: any) => project.session_name)
+    .sort((a: any, b: any) => dayjs(b.last_create_time).diff(dayjs(a.last_create_time)))
 
   return (
     <>
-      <div className="grid auto-rows-max items-start gap-4 ">
+      <div className="grid auto-rows-max items-start gap-4 p-6 pt-2">
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4"></div>
         <div>
           <Card>
@@ -46,7 +50,7 @@ export default async function Projects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {projects?.sessions?.map((project: any) => (
+                  {projects?.map((project: any) => (
                     <TableRow key={project[0] || "default"}>
                       <TableCell>
                         <Link href={`/projects/${project.session_name}`}>
@@ -54,10 +58,10 @@ export default async function Projects() {
                         </Link>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {project.first_create_time.toLocaleDateString()}
+                        {dayjs(project.first_create_time).format("YYYY-MM-DD HH:mm:ss")}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {project.last_create_time.toLocaleDateString()}
+                        {dayjs(project.last_create_time).format("YYYY-MM-DD HH:mm:ss")}
                       </TableCell>
                       <TableCell className="text-right">{project.count}</TableCell>
                     </TableRow>

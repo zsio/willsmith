@@ -7,13 +7,6 @@ export async function POST(request: Request) {
     const connection = await getConnection()
     const res = await request.json()
 
-    if ('patch' in res) {
-        console.log('patch');
-    }
-
-    if ('post' in res) {
-        console.log('post');
-    }
 
     const postList = res.post || [];
     const patchList = res.patch || [];
@@ -23,7 +16,8 @@ export async function POST(request: Request) {
     const documentsWithTimestamp = documents.map((doc: Object) => ({
         ...doc,
         type: 'patch' in res ? 'patch' : 'post',
-        createdAt: new Date()
+        createdAt: new Date(),
+        session_name: res.session_name || "default"
       }));
 
 

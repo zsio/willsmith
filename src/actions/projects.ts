@@ -1,81 +1,119 @@
 "use server";
 
-const { ObjectId } = require('mongodb');
-import { getConnection } from "@/lib/mongo/mongo";
+import { ObjectId } from "mongodb";
+import clientPromise, { getConnection } from "@/lib/mongo/mongo";
+import { IRun, default as RunModel } from "@/models/runs";
 
 export async function getProjectsAction() {
   const connection = await getConnection();
-  const collection = connection.collection("runs");
 
-  const projects = await collection
-    .aggregate([
-      {
-        $group: {
-          _id: "$session_name",
-          count: { $sum: 1 },
-          first_create_time: { $min: "$createdAt" },
-          last_create_time: { $max: "$createdAt" },
-        },
+  const projects = await connection.collection("runs").aggregate([
+    {
+      $group: {
+        _id: "$session_name",
+        count: { $sum: 1 },
+        first_create_time: { $min: "$createdAt" },
+        last_create_time: { $max: "$createdAt" },
       },
-      {
-        $project: {
-          _id: 0,
-          session_name: "$_id",
-          count: 1,
-          first_create_time: 1,
-          last_create_time: 1,
-        },
+    },
+    {
+      $project: {
+        _id: 0,
+        session_name: "$_id",
+        count: 1,
+        first_create_time: 1,
+        last_create_time: 1,
       },
-      {
-        $group: {
-          _id: null,
-          total_count: { $sum: 1 },
-          sessions: { $push: "$$ROOT" },
-        },
+    },
+    {
+      $group: {
+        _id: null,
+        total_count: { $sum: 1 },
+        sessions: { $push: "$$ROOT" },
       },
-      {
-        $project: {
-          _id: 0,
-          total_count: 1,
-          sessions: 1,
-        },
+    },
+    {
+      $project: {
+        _id: 0,
+        total_count: 1,
+        sessions: 1,
       },
-    ])
-    .toArray();
-  return projects[0];
+    },
+  ]).toArray();
+  return projects?.[0] || [];
 }
 
 export async function getRunsAction(
-    session_name: string,
-    limit: number = 30,
-    last_id?: string
-  ) {
-    const connection = await getConnection();
-    const collection = connection.collection("runs");
-  
-    let query: any = {
-      session_name,
-      parent_run_id: null,
-    };
-  
-    let sort: any = { start_time: -1 };
-  
-    if (last_id) {
-      const lastRun = await collection.findOne({ _id: new ObjectId(last_id) });
-      if (lastRun) {
-        query.start_time = { $lt: lastRun.start_time };
-      } else {
-        // 如果找不到对应的 last_id，则返回空数组
-        return [];
-      }
-    }
-  
-    const runs = await collection
-      .find(query)
-      .sort(sort)
-      .limit(limit)
-      .hint({ session_name: 1, parent_run_id: 1, start_time: -1 })
-      .toArray();
-  
-    return runs || [];
+  session_name: string,
+  limit: number = 50,
+  last_id?: string
+): Promise<IRun[]> {
+  await clientPromise;
+
+  // 基础查询条件
+  let query: any = {
+    session_name,
+    parent_run_id: null,
+    type: "post"
+  };
+
+  // 使用 _id 进行分页
+  if (last_id) {
+    query._id = { $lt: new ObjectId(last_id) };
   }
+
+  // 只选择需要的字段
+  const projection = {
+    _id: 1,
+    id: 1,
+    start_time: 1,
+    end_time: 1,
+    name: 1,
+    run_type: 1,
+    inputs: 1,
+    outputs: 1,
+    type: 1,
+  };
+
+  try {
+    const runs = await RunModel.find(query, projection)
+      .sort({ _id: -1 })
+      .limit(limit)
+      .lean();
+    
+    const runIds = runs.map((run) => run.id)
+    const newRuns = (await getRunActionByIds(runIds, true))
+    const patchList =  runs.map((run) => {
+      const newRun = newRuns.find((newRun) => newRun.id === run.id)
+      if (newRun) {
+        run.name = run.name
+        run.inputs = newRun.inputs
+        run.outputs = newRun.outputs
+        run.type = run.type || newRun.type
+        run.start_time = run.start_time || newRun.start_time
+        run.end_time = run.end_time || newRun.end_time
+      }
+      return run
+    })
+
+    return patchList.map((run) => ({
+      ...run,
+      _id: run._id.toString(),
+    }));
+  } catch (error) {
+    console.error("Error fetching runs:", error);
+    return [];
+  }
+}
+
+export async function getRunActionByIds(runIds: string[], isPatch: boolean = false) {
+    await clientPromise;
+    const runs = await RunModel.find({ 
+        id: { $in: runIds },
+        type: isPatch ? "patch" : "run"
+    }).lean()
+    return runs.map((run) => ({
+      ...run,
+      _id: run._id.toString(),
+    }))
+}
