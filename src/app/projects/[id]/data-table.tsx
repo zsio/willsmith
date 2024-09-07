@@ -28,6 +28,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
   });
 

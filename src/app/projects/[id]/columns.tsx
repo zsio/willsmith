@@ -38,6 +38,7 @@ function getSingleStringProperty(obj: Record<string, any>) {
 export const columns: ColumnDef<IRun>[] = [
   {
     accessorKey: "error",
+    enableResizing: true,
     header: () => <div className="text-sm text-muted-foreground max-w-12 text-center">Status</div>,
     cell: ({ row }) => (
       <div className="text-sm text-muted-foreground text-center">
