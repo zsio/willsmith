@@ -1,39 +1,68 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# WillSmith: A LangSmith Open-Source Alternative 🚀
 
-## Getting Started
+[![Docker Pulls](https://img.shields.io/docker/pulls/zsio/willsmith.svg)](https://hub.docker.com/r/zsio/willsmith)
 
-First, run the development server:
+**WillSmith** is an open-source alternative to LangSmith, designed to provide a more cost-effective and flexible solution for monitoring, debugging, and optimizing applications based on large language models (LLMs). It supports easy deployment via Docker and features a sleek user interface.
+
+
+## Features ✨
+- **Chain Call Monitoring**: Track and record every model call's input, output, errors, and performance metrics for easy optimization.
+- **User-Friendly UI**: With a clean interface built using Shadcn UI, quickly browse and analyze stored data.
+- **MongoDB Data Storage**: Efficiently store and query chain call and debugging data with MongoDB.
+- **Docker Deployment**: Easily get started using the provided Docker setup.
+
+
+
+
+## Getting Started ⚡
+
+### 1. Start with Docker Compose 🐳
+
+This project provides a `docker-compose.yaml` file that includes everything you need to run the app and MongoDB. Make sure you have Docker and Docker Compose installed.
+
+First, set up your environment variables in a `.env` file:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# .env
+MONGODB_URI=mongodb://your-mongo-uri:27017/willsmith
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then, simply run:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker-compose up -d
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Docker Compose will start both the WillSmith app and the MongoDB instance. The app will be available at `http://localhost:3000`.
 
-## Learn More
+### 2. Access the App 🌐
 
-To learn more about Next.js, take a look at the following resources:
+Once the app is running, open your browser and visit `http://localhost:3000` to access the UI and start managing your application data.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## LangChain Integration 🔗
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+To integrate WillSmith with your LangChain project for chain call monitoring, just add the following environment variables to your `.env` file:
 
-## Deploy on Vercel
+```bash
+# In your LangChain project's .env file
+LANGCHAIN_ENDPOINT=http://localhost:3000  # The service URL after Docker starts
+LANGCHAIN_TRACING_V2=True
+LANGCHAIN_API_KEY=your_api_key  # Any value, no key validation yet
+LANGCHAIN_PROJECT=project_name  # Your custom project name
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+With these settings, LangChain will automatically send chain call data to WillSmith, which will store it in MongoDB.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Development Roadmap 🛠️
 
+We have an exciting set of features in our development pipeline. Here’s what’s coming next:
 
-https://ui.shadcn.com/docs
+- [x] **Project Querying** 🗂️ — Completed
+- [x] **Root Record Querying** 📝 — Completed
+- [ ] **Tree-Structured Detailed Record Querying** 🌲 — In progress
+- [ ] **Enhanced Database Design** 📊 — Coming soon (refactor data into multiple collections)
+- [ ] **Auto-Update for Record Queries** 🔄 — Coming soon (dynamic query updates for latest records)
+
+---
+
+Feel free to extend the project based on your needs. We welcome contributions from the community! 🙌

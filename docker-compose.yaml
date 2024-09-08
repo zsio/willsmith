@@ -1,17 +1,11 @@
-version: "3"
 
 services:
   willsmith:
+    # Currently, there is only a beta version.
+    image: zsio/willsmith:v0.0.1-beta.4
     container_name: willsmith
-    build:
-      context: ./
-      dockerfile: prod.Dockerfile
-      args:
-        ENV_VARIABLE: ${ENV_VARIABLE}
-        NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
-    restart: always
+    restart: unless-stopped
     environment:
       - MONGODB_URI=${MONGODB_URI}
     ports:
-      - 23000:3000
-    
+      - 3000:3000
