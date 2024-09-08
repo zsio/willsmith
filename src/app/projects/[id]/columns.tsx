@@ -20,7 +20,10 @@ const copyToClipboard = (text: Object) => {
 };
 
 
-function getSingleStringProperty(obj: Record<string, any>) {
+function getSingleStringProperty(obj?: Record<string, any>) {
+    if (!obj) {
+        return "";
+    }
     const keys = Object.keys(obj);
     // 检查对象是否只有一个键
     if (keys.length !== 1) {
@@ -32,7 +35,7 @@ function getSingleStringProperty(obj: Record<string, any>) {
       return value;
     }
     return JSON.stringify(value);
-  }
+}
 
 
 export const columns: ColumnDef<IRun>[] = [
