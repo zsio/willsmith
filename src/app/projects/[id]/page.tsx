@@ -1,8 +1,5 @@
 "use client";
 
-import dynamic from 'next/dynamic';
-import useSWR from "swr";
-import dayjs from "dayjs";
 
 import { CircleCheck, CircleX, LayoutDashboard, RefreshCcw, Search } from "lucide-react";
 
@@ -12,9 +9,7 @@ import { getRunsAction, getRunActionByIds } from "@/actions/projects";
 import { Button } from "@/components/ui/button";
 import { columns } from './columns';
 import { DataTable } from './data-table';
-import { Badge } from '@/components/ui/badge';
 import { useEffect, useState, useCallback } from 'react';
-import { log } from 'console';
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
   const [list, setList] = useState<IRun[]>([]);
@@ -36,7 +31,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
 
   const handleGetRuns = useCallback(async (lastRunId?: string) => {
     setIsLoading(true)
-    const runs = (await getRunsAction(params.id, 30,lastRunId)) || []
+    const runs = (await getRunsAction(params.id, 100,lastRunId)) || []
     handleSetList(runs)
     setIsLoading(false)
   }, [params.id]);

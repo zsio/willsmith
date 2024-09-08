@@ -108,7 +108,7 @@ const EventSchema = new Schema<IEvent>({
 
 const RunSchema = new Schema<IRun>(
   {
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     start_time: Date,
     end_time: Date,
     extra: ExtraSchema,
