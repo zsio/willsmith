@@ -1,10 +1,9 @@
 
 import { headers } from 'next/headers'
-import clientPromise, {getConnection} from "@/lib/mongo/mongo";
-import mongoose from "mongoose";
+import mongoDBClientPromise, { getMongoDBConnection } from "@/lib/mongo/mongo";
 
 export async function POST(request: Request) {
-    const connection = await getConnection()
+    const connection = await getMongoDBConnection()
     const res = await request.json()
 
 

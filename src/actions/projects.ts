@@ -1,13 +1,13 @@
 "use server";
 
 import { ObjectId } from "mongodb";
-import clientPromise, { getConnection } from "@/lib/mongo/mongo";
+import mongoDBClientPromise, { getMongoDBConnection } from "@/lib/mongo/mongo";
 import { IRun, default as RunModel } from "@/models/runs";
 
 export async function getProjectsAction() {
-  const connection = await getConnection();
+  const connection = (await getMongoDBConnection()).collection("runs");
 
-  const projects = await connection.collection("runs").aggregate([
+  const projects = await connection.aggregate([
     {
       $group: {
         _id: "$session_name",
@@ -48,7 +48,7 @@ export async function getRunsAction(
   limit: number = 50,
   last_id?: string
 ): Promise<IRun[]> {
-  await clientPromise;
+  await mongoDBClientPromise;
 
   // 基础查询条件
   let query: any = {
@@ -107,7 +107,7 @@ export async function getRunsAction(
 }
 
 export async function getRunActionByIds(runIds: string[], isPatch: boolean = false) {
-    await clientPromise;
+    await mongoDBClientPromise;
     const runs = await RunModel.find({ 
         id: { $in: runIds },
         type: isPatch ? "patch" : "run"

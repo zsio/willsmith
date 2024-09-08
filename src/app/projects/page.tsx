@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link";
 import {
   Card,
@@ -16,12 +17,31 @@ import {
 } from "@/components/ui/table";
 import { getProjectsAction } from "@/actions/projects";
 import dayjs from "dayjs";
+import { useState, useEffect } from "react";
+import { IRun } from "@/models/runs";
 
-export default async function Projects() {
-  const result = await getProjectsAction()
-  const projects = (result?.sessions || [])
-    .filter((project: any) => project.session_name)
-    .sort((a: any, b: any) => dayjs(b.last_create_time).diff(dayjs(a.last_create_time)))
+export default function Projects() {
+
+  const [projects, setProjects] = useState<IRun[]>([])
+
+  useEffect(() => {
+    getProjectsAction().then((result) => {
+      const projects = (result?.sessions || [])
+        .filter((project: any) => project.session_name)
+        .sort((a: any, b: any) => dayjs(b.last_create_time).diff(dayjs(a.last_create_time)))
+        .map((project: IRun) => ({
+          ...project,
+          total_count: result?.total_count || 0,
+        }))
+      setProjects(projects)
+    })
+  }, [])
+
+
+  // const result = await getProjectsAction()
+  // const projects = (result?.sessions || [])
+  //   .filter((project: any) => project.session_name)
+  //   .sort((a: any, b: any) => dayjs(b.last_create_time).diff(dayjs(a.last_create_time)))
 
   return (
     <>
@@ -32,7 +52,7 @@ export default async function Projects() {
             <CardHeader className="px-7">
               <CardTitle>Namespace</CardTitle>
               <CardDescription>
-                You have {projects?.total_count || 0} projects in progress.
+                You have {projects.length || 0} projects in progress.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -51,7 +71,7 @@ export default async function Projects() {
                 </TableHeader>
                 <TableBody>
                   {projects?.map((project: any) => (
-                    <TableRow key={project[0] || "default"}>
+                    <TableRow key={project.session_name || "default"}>
                       <TableCell>
                         <Link href={`/projects/${project.session_name}`}>
                           <div className="font-medium">{project.session_name || "default"}</div>
