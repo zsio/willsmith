@@ -1,6 +1,7 @@
 
 import { headers } from 'next/headers'
 import mongoDBClientPromise, { getMongoDBConnection } from "@/lib/mongo/mongo";
+import { IRun } from '@/models/runs';
 
 export async function POST(request: Request) {
     const connection = await getMongoDBConnection()
@@ -12,11 +13,11 @@ export async function POST(request: Request) {
 
     const documents = res.patch || res.post || [];
 
-    const documentsWithTimestamp = documents.map((doc: Object) => ({
+    const documentsWithTimestamp = documents.map((doc: IRun) => ({
         ...doc,
         type: 'patch' in res ? 'patch' : 'post',
         createdAt: new Date(),
-        session_name: res.session_name || "default"
+        session_name: doc?.session_name || "default"
       }));
 
 
@@ -24,7 +25,6 @@ export async function POST(request: Request) {
 
     return Response.json({
         "message": "Runs batch ingested",
-        "dbId": connection.id
     }, {
         status: 202
     })

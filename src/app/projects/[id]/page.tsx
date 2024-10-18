@@ -5,18 +5,18 @@ import { CircleCheck, CircleX, LayoutDashboard, RefreshCcw, Search } from "lucid
 
 
 import type { IRun } from "@/models/runs";
-import { getRunsAction, getRunActionByIds } from "@/actions/projects";
+import { getRunsAction } from "@/actions/projects";
 import { Button } from "@/components/ui/button";
 import { columns } from './columns';
 import { DataTable } from './data-table';
 import { useEffect, useState, useCallback } from 'react';
+import dayjs from "dayjs";
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
   const [list, setList] = useState<IRun[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const session_name = params.id;
-
 
   const handleSetList = (newRuns: IRun[]) => {
     setList(prevList => {
@@ -25,13 +25,14 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
         return newItem ? newItem : prevItem;
       });
       const newItems = newRuns.filter(item => !prevList.some(prevItem => prevItem._id === item._id));
-      return [...updatedList, ...newItems];
+      const allItems = [...updatedList, ...newItems].sort((a, b) => dayjs(b.start_time).unix() - dayjs(a.start_time).unix());
+      return allItems;
     });
   }
 
   const handleGetRuns = useCallback(async (lastRunId?: string) => {
     setIsLoading(true)
-    const runs = (await getRunsAction(params.id, 100,lastRunId)) || []
+    const runs = (await getRunsAction(params.id, 30,lastRunId)) || []
     handleSetList(runs)
     setIsLoading(false)
   }, [params.id]);
@@ -39,7 +40,9 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     if (isLoading) return
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-    if (scrollHeight - scrollTop <= clientHeight + 20) {
+
+    if ((scrollHeight - scrollTop) <= clientHeight + 400) {
+      console.log("fetching more runs")
       const lastRun = list[list.length - 1];
       if (lastRun) {
         handleGetRuns(lastRun._id as string);

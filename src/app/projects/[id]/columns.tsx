@@ -44,11 +44,11 @@ export const columns: ColumnDef<IRun>[] = [
     enableResizing: true,
     header: () => <div className="text-sm text-muted-foreground max-w-12 text-center">Status</div>,
     cell: ({ row }) => (
-      <div className="text-sm text-muted-foreground text-center">
+      <div className="flex justify-center items-center">
         {row.original.error ? (
-          <CircleX color="#ff0000" />
+          <CircleX color="#ff0000" size={24} />
         ) : (
-          <CircleCheck color="#199400" />
+          <CircleCheck color="#199400" size={24} />
         )}
       </div>
     ),
